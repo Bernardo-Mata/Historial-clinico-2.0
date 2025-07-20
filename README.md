@@ -2,114 +2,148 @@
 
 ## Descripción
 
-Este proyecto es una aplicación web desarrollada con **FastAPI** (backend) y **React** (frontend) para gestionar de manera segura los historiales clínicos de pacientes. Utiliza **SQLAlchemy** como ORM y **MySQL** como base de datos. El sistema está diseñado para que los doctores puedan consultar, crear, actualizar y eliminar historiales clínicos, así como gestionar consultorios y pacientes.
+Aplicación web desarrollada con **FastAPI** (backend) y **React** (frontend) para la gestión segura de historiales clínicos de pacientes. Utiliza **SQLAlchemy** como ORM y **MySQL** como base de datos. Permite a los doctores consultar, crear, actualizar y eliminar historiales clínicos, así como gestionar consultorios y pacientes, con autenticación segura y control de acceso.
 
-## Características principales
+---
 
-- **Gestión de usuarios y doctores**: Registro seguro, inicio de sesión y control de acceso.
-- **Historiales clínicos**: CRUD completo, con soporte para múltiples historiales por paciente y odontograma para dentistas.
-- **Consultorios**: Un doctor puede gestionar varios consultorios.
-- **Seguridad**: Uso de JWT para autenticación, contraseñas encriptadas y validación de datos.
-- **Colaborativo**: Estructura modular y limpia para facilitar el trabajo en equipo.
-
-## Estructura del proyecto
+## Estructura del Proyecto
 
 ```
 /app
-    /models         # Modelos SQLAlchemy (tablas)
+    /models         # Modelos SQLAlchemy (tablas de la BD)
+        models.py
     /schemas        # Esquemas Pydantic (validación y serialización)
+        schemas.py
     /crud           # Lógica de acceso a datos (CRUD)
+        crud.py
     /api            # Rutas y controladores FastAPI
+        api.py
     /core           # Configuración y utilidades
+        config.py
     /db             # Sesión y conexión a la base de datos
+        session.py
+        init_db.py
     /security       # Utilidades de seguridad (hash, JWT)
+        auth.py
     main.py         # Punto de entrada FastAPI
 requirements.txt    # Dependencias del proyecto
+.env                # Variables de entorno (no subir a git)
+.gitignore          # Exclusiones para git
 README.md           # Este archivo
 ```
 
-## Instalación y configuración
+---
 
-### 1. Clonar el repositorio
+## Instalación y Configuración
+
+### 1. Clona el repositorio
 
 ```bash
 git clone <URL-del-repositorio>
 cd <nombre-del-proyecto>
 ```
 
-### 2. Crear y activar un entorno virtual
+### 2. Crea y activa un entorno virtual
 
-En Windows:
-
+**Windows:**
 ```powershell
 python -m venv venv
 .\venv\Scripts\activate
 ```
-
-En Linux/Mac:
-
+**Linux/Mac:**
 ```bash
 python3 -m venv venv
 source venv/bin/activate
 ```
 
-### 3. Instalar dependencias
+### 3. Instala las dependencias
 
 ```bash
 pip install -r requirements.txt
 ```
 
-### 4. Configurar la base de datos
+### 4. Configura las variables de entorno
 
-Edita `app/core/config.py` y coloca tu cadena de conexión MySQL:
+Crea un archivo `.env` en la raíz del proyecto con tus credenciales de MySQL:
 
-```python
-SQLALCHEMY_DATABASE_URL = "mysql+mysqlconnector://usuario:contraseña@localhost:3306/tu_basededatos"
 ```
+MYSQL_USER=tu_usuario
+MYSQL_PASSWORD=tu_contraseña
+MYSQL_HOST=localhost
+MYSQL_PORT=3306
+MYSQL_DB=nombre_base_datos
+```
+
+> **Nota:** No subas `.env` a git, ya está en `.gitignore`.
+
+### 5. Configura la base de datos
 
 Crea la base de datos en MySQL si no existe:
 
 ```sql
-CREATE DATABASE tu_basededatos CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+CREATE DATABASE nombre_base_datos CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 ```
 
-### 5. Inicializar las tablas
+### 6. Inicializa las tablas
 
-Puedes usar Alembic o crear las tablas automáticamente desde los modelos:
+Ejecuta el script de inicialización desde la raíz del proyecto:
 
-```python
-# En main.py o un script aparte
-from app.models import Base
-from app.db.session import engine
-
-Base.metadata.create_all(bind=engine)
+```bash
+python -m app.db.init_db
 ```
 
-### 6. Ejecutar el servidor de desarrollo
+Esto creará todas las tablas según los modelos definidos en `app/models/models.py`.
+
+### 7. Ejecuta el servidor de desarrollo
 
 ```bash
 uvicorn app.main:app --reload
 ```
 
-## Lógica y buenas prácticas
+Accede a la documentación interactiva en [http://localhost:8000/docs](http://localhost:8000/docs).
 
-- **Modelos**: Cada tabla de la base de datos tiene su modelo SQLAlchemy.
-- **Esquemas**: Los esquemas Pydantic validan y serializan los datos de entrada/salida.
-- **CRUD**: La lógica de acceso a datos está separada para facilitar pruebas y mantenimiento.
-- **Seguridad**: Las contraseñas se almacenan encriptadas y se usa JWT para autenticación.
-- **Colaboración**: El código está modularizado para que varios desarrolladores puedan trabajar en paralelo.
+---
+
+## Lógica y Buenas Prácticas
+
+- **Modelos:** Todas las tablas están definidas en `app/models/models.py` usando SQLAlchemy.
+- **Esquemas:** Los esquemas Pydantic para validación y serialización están en `app/schemas/schemas.py`.
+- **CRUD:** Toda la lógica de acceso a datos está centralizada en `app/crud/crud.py`, usando los modelos y esquemas correctos.
+- **Rutas:** Los endpoints de la API están en `app/api/api.py`, importando funciones CRUD y esquemas desde sus módulos correspondientes.
+- **Seguridad:** Contraseñas encriptadas con bcrypt, autenticación JWT, y configuración de CORS segura.
+- **Configuración:** Todas las variables sensibles y de conexión están en `.env` y se cargan automáticamente con `pydantic-settings`.
+- **Colaboración:** Estructura modular y limpia, siguiendo las mejores prácticas para proyectos colaborativos y escalables.
+
+---
+
+## Ejemplo de Flujo de Trabajo
+
+1. **Registro de doctor:**  
+   POST `/register` con los datos del doctor.
+
+2. **Login de doctor:**  
+   POST `/login` con correo y contraseña para obtener un JWT.
+
+3. **CRUD de pacientes e historiales clínicos:**  
+   Usa los endpoints `/patients/` y `/medical_history/` para crear, consultar, actualizar y eliminar registros.
+
+---
 
 ## Contribución
 
-1. Crea una rama para tu funcionalidad.
-2. Haz tus cambios y pruebas.
-3. Haz un pull request describiendo claramente tus cambios.
-
-## Notas
-
-- No compartas tu archivo `.env` ni credenciales sensibles.
+- Crea una rama para tu funcionalidad.
+- Haz tus cambios y pruebas.
+- Haz un pull request describiendo claramente tus cambios.
 - Sigue las convenciones de código y comentarios para facilitar la colaboración.
 
 ---
 
-¿Listo para continuar con la implementación de los modelos y la lógica de negocio?
+## Notas
+
+- No compartas tu archivo `.env` ni credenciales sensibles.
+- Si agregas nuevas dependencias, actualiza `requirements.txt`.
+- Si modificas la estructura de la base de datos, actualiza los modelos y ejecuta las migraciones o el script de inicialización.
+
+---
+
+¿Dudas o sugerencias? ¡Colabora y mejora el proyecto!
