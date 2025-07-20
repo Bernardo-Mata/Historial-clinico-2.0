@@ -1,11 +1,19 @@
 from pydantic_settings import BaseSettings
 
 class Settings(BaseSettings):
-    SQLALCHEMY_DATABASE_URL: str = "mysql+mysqlconnector://usuario:contraseña@localhost:3306/tu_basededatos"
-    SECRET_KEY: str = "cambia_esto_por_un_valor_secreto"
-    ALGORITHM: str = "HS256"
-    ACCESS_TOKEN_EXPIRE_MINUTES: int = 30
-    ALLOW_ORIGINS: list[str] = ["*"]  # Permite todas las conexiones CORS por defecto
+    MYSQL_USER: str
+    MYSQL_PASSWORD: str
+    MYSQL_HOST: str
+    MYSQL_PORT: int
+    MYSQL_DB: str
+    ALLOW_ORIGINS: list[str] = ["*"]  # Default to allow all origins
+
+    @property
+    def SQLALCHEMY_DATABASE_URL(self):
+        return (
+            f"mysql+mysqlconnector://{self.MYSQL_USER}:{self.MYSQL_PASSWORD}"
+            f"@{self.MYSQL_HOST}:{self.MYSQL_PORT}/{self.MYSQL_DB}"
+        )
 
     class Config:
         env_file = ".env"
